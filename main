@@ -3,7 +3,7 @@
 // Configurações dos pinos do Arduino
 const int pino_trigger = 2;
 const int pino_echo = 3;
-const int buzzer = 9;
+const int buzzer = 8;
 const int potPin = A0; // Pino analógico conectado ao potenciômetro
 
 // Variáveis para o buzzer
