@@ -1,0 +1,80 @@
+#include <Ultrasonic.h>
+
+// Configurações dos pinos do Arduino
+const int pino_trigger = 2;
+const int pino_echo = 3;
+const int buzzer = 9;
+const int potPin = A0; // Pino analógico conectado ao potenciômetro
+
+// Variáveis para o buzzer
+unsigned long ultimoSom = 0; // Armazena o tempo do último som
+const long intervaloSom = 500; // Intervalo entre os sons do buzzer
+
+int distancia_minima = 10; // Distância mínima padrão
+int distancia_maxima = 100; // Distância máxima padrão
+
+// Inicializa o sensor nos pinos definidos
+Ultrasonic ultrasonic(pino_trigger, pino_echo);
+
+void setup() {
+  Serial.begin(9600);
+
+  // Configura os pinos
+  pinMode(pino_trigger, OUTPUT);
+  pinMode(pino_echo, INPUT);
+  pinMode(buzzer, OUTPUT);
+}
+
+void loop() {
+  // Lê a distância medida pelo sensor em centímetros
+  float distancia;
+  long microsec = ultrasonic.timing();
+  distancia = ultrasonic.convert(microsec, Ultrasonic::CM);
+
+  // Lê o valor do potenciômetro para ajustar a distância mínima e máxima
+  int valorPotenciometro = analogRead(potPin);
+  distancia_minima = map(valorPotenciometro, 0, 270, 5, 20); // Ajuste os valores conforme necessário
+  distancia_maxima = map(valorPotenciometro, 0, 270, 20, 200); // Ajuste os valores conforme necessário
+
+  // Exibe a distância no monitor serial
+  Serial.print("Potenciômetro: ");
+  Serial.println(valorPotenciometro);
+  Serial.print("Distância mínima: ");
+  Serial.println(distancia_minima);
+  Serial.print("Distância máxima: ");
+  Serial.println(distancia_maxima);
+
+  if (distancia <= distancia_minima) {
+    Serial.print("Atenção: ");
+    Serial.print(distancia);
+    Serial.println(" cm");
+    tocaBuzzer();
+  } else if (distancia > distancia_minima && distancia <= distancia_maxima) {
+    Serial.print("Cuidado: ");
+    Serial.print(distancia);
+    Serial.println(" cm");
+    noTone(buzzer);
+  } else {
+    Serial.print("Livre: ");
+    Serial.print(distancia);
+    Serial.println(" cm");
+    noTone(buzzer);
+  }
+  delay(1000);
+}
+
+// Função para tocar o buzzer com o som "bis"
+void tocaBuzzer() {
+  unsigned long tempoAtual = millis();
+
+  // Verifica se já passou tempo suficiente desde o último som
+  if (tempoAtual - ultimoSom >= intervaloSom) {
+    // Toca o som "bis"
+    tone(buzzer, 1000);
+    delay(100);
+    noTone(buzzer);
+    
+    // Atualiza o tempo do último som
+    ultimoSom = tempoAtual;
+  }
+}
